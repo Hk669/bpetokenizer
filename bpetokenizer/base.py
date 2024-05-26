@@ -61,25 +61,29 @@ class Tokenizer:
     def __init__(self):
         self.merges = {}
         self.pattern = "" # the regex pattern
-        self.vocab = self._build_vocab()
         self.special_tokens = {}
+        self.vocab = self._build_vocab()
 
     def _build_vocab(self) -> dict:
+        """Build the vocab from the merges and special tokens. This will be used to encode/decode the tokens."""
         vocab = {idx: bytes([idx]) for idx in range(256)}
         for (p0, p1), idx in self.merges.items():
             vocab[idx] = vocab[p0] + vocab[p1]
-        for special, idx in self.special_tokens.items():
-            vocab[idx] = special.encode("utf-8")
+        if self.special_tokens:
+            for special, idx in self.special_tokens.items():
+                vocab[idx] = special.encode("utf-8")
         return vocab
 
     def save(self, file_name):
+        """Writes metadata and vocabulary information to the model and vocab files"""
         model_file = file_name + ".model"
         with open(model_file, 'w') as f:
             f.write("bpetokenizer v0.1\n")
             f.write(f"{self.pattern}\n")
             f.write(f"{len(self.special_tokens)}\n")
-            for special, idx in self.special_tokens.items():
-                f.write(f"{special} {idx}\n")
+            if self.special_tokens:
+                for special, idx in self.special_tokens.items():
+                    f.write(f"{special} {idx}\n")
 
             for idx1, idx2 in self.merges: # this will give the tokens of pair which are merged
                 f.write(f"{idx1} {idx2}\n")
@@ -123,10 +127,13 @@ class Tokenizer:
         self.vocab = self._build_vocab()
 
     def encode(self, texts):
+        """Method to encode the text to ids."""
         ...
 
     def decode(self, ids):
+        """Method to decode the ids to text."""
         ...
 
     def train(self, texts, vocab_size, verbose=False):
+        """Method for training the tokenizer."""
         ...
