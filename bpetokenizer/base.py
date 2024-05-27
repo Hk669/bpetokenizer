@@ -78,7 +78,7 @@ class Tokenizer:
         """Writes metadata and vocabulary information to the model and vocab files"""
         model_file = file_name + ".model"
         with open(model_file, 'w') as f:
-            f.write("bpetokenizer v0.1\n")
+            f.write("bpetokenizer v1.0.0\n")
             f.write(f"{self.pattern}\n")
             f.write(f"{len(self.special_tokens)}\n")
             if self.special_tokens:
@@ -111,7 +111,7 @@ class Tokenizer:
         special_tokens = {}
         idx = 256
         with open(file_name, 'r', encoding="utf-8") as f:
-            assert f.readline().strip() == "bpetokenizer v0.1"
+            assert f.readline().strip() == "bpetokenizer v1.0.0"
             self.pattern = f.readline().strip().split()
             num_special = int(f.readline().strip()) # no of lines of special_tokens
             for _ in range(num_special):
