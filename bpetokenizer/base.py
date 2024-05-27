@@ -4,9 +4,9 @@ and Base class which has the methods to save/load model,
 also required to build the BPETokenizer.
 """
 
-def get_stats(tokens) -> dict:
+def get_stats(tokens, counts=None) -> dict:
     """Get statistics of the tokens. Includes the frequency of each consecutive pair of tokens"""
-    counts = {}
+    counts = {} if counts is None else counts
     for pair in zip(tokens, tokens[1:]):
         counts[pair] = counts.get(pair, 0) + 1
     return counts
@@ -56,7 +56,7 @@ def render_token(t: bytes) -> str:
 
 
 class Tokenizer:
-    """A Base class for the tokenizer"""
+    """A Base class for the tokenizer, used for training and encoding/decoding the text without special tokens."""
 
     def __init__(self):
         self.merges = {}
@@ -128,12 +128,48 @@ class Tokenizer:
 
     def encode(self, texts):
         """Method to encode the text to ids."""
-        ...
+        text_bytes = texts.encode("utf-8") # raw bytes string
+        ids = list(map(int, text_bytes))
+        while len(ids) >= 2:
+            # find the pair with the lowest merge index
+            stats = get_stats(ids)
+            pair = min(stats, key=lambda p: self.merges.get(p, float("inf")))
+
+            if pair not in self.merges:
+                break # nothing else can be merged anymore
+            # otherwise let's merge the best pair (lowest merge index)
+            idx = self.merges[pair]
+            ids = merge(ids, pair, idx)
+        return ids
 
     def decode(self, ids):
         """Method to decode the ids to text."""
-        ...
+        bytes_str = b"".join([self.vocab[idx] for idx in ids])
+        text = bytes_str.decode("utf-8", errors="replace")
+        return text
 
     def train(self, texts, vocab_size, verbose=False):
         """Method for training the tokenizer."""
-        ...
+        assert vocab_size >= 256
+        num_merges = vocab_size - 256
+
+        tokens = texts.encode("utf-8")
+        ids = list(tokens)
+        merges = {}
+        vocab = {idx: bytes([idx]) for idx in range(256)} # vocab for first 255 bytes
+
+        # bpe algorithm
+        for i in range(num_merges):
+            stats = get_stats(ids)
+            pair = max(stats, key=stats.get) # returns the highest frequency pair
+            idx = 256 + i
+
+            ids = merge(ids, pair, idx)
+            merges[pair] = idx
+            vocab[idx] = vocab[pair[0]] + vocab[pair[1]] # concat of bytes
+
+            if verbose:
+                print(f"merging {i+1}/{num_merges}: {pair} -> {idx} ({vocab[idx]}) had {stats[pair]} frequency")
+
+        self.merges = merges
+        self.vocab = vocab
