@@ -1,9 +1,7 @@
-import sys
-sys.path.append("../")
-from bpetokenizer import BPETokenizer
+from bpetokenizer import Tokenizer
 
 text = "aaabdaaabac"
-tokenizer = BPETokenizer()
+tokenizer = Tokenizer()
 tokenizer.train(text, 259, verbose=True)
 
 ids = tokenizer.encode(text)
