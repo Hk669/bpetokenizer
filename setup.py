@@ -24,8 +24,7 @@ setup(
     author="Hrushikesh Dokala",
     author_email="hrushi669@gmail.com",
     license="MIT",
-    package_dir={"bpetokenizer": "bpetokenizer"},
-    packages=find_packages(where="bpetokenizer"),
+    packages=find_packages(include=["bpetokenizer"]),
     classifiers=[
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3",
