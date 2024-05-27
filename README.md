@@ -35,6 +35,13 @@ Every LLM(LLama, Gemini, Mistral..) use their own Tokenizers trained on their ow
 
 this tutorial leverages the `special_tokens` usage in the Tokenizer.
 
+Install the package
+
+```shell
+pip install bpetokenizer
+```
+
+
 ```py
 from bpetokenizer import BPETokenizer
 
