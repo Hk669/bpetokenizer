@@ -3,6 +3,7 @@ This file will contains all the helper functions
 and Base class which has the methods to save/load model,
 also required to build the BPETokenizer.
 """
+from .version import __version__
 
 def get_stats(tokens, counts=None) -> dict:
     """Get statistics of the tokens. Includes the frequency of each consecutive pair of tokens"""
@@ -62,7 +63,7 @@ class Tokenizer:
         self.merges = {}
         self.pattern = "" # the regex pattern
         self.special_tokens = {}
-        self.vocab = self._build_vocab()
+        self.vocab = self._build_vocab() if self.merges else {}
 
     def _build_vocab(self) -> dict:
         """Build the vocab from the merges and special tokens. This will be used to encode/decode the tokens."""
@@ -74,57 +75,96 @@ class Tokenizer:
                 vocab[idx] = special.encode("utf-8")
         return vocab
 
-    def save(self, file_name):
-        """Writes metadata and vocabulary information to the model and vocab files"""
-        model_file = file_name + ".model"
-        with open(model_file, 'w') as f:
-            f.write("bpetokenizer v1.0.0\n")
-            f.write(f"{self.pattern}\n")
-            f.write(f"{len(self.special_tokens)}\n")
-            if self.special_tokens:
-                for special, idx in self.special_tokens.items():
-                    f.write(f"{special} {idx}\n")
+    def save(self, file_name, mode="file"):
+        """
+        Writes metadata and vocabulary information to the model and vocab files.
+        mode: str, default="file" | "json" to save the model and vocab in json format.
+        """
+        if mode == "file":
+            model_file = file_name + ".model"
+            with open(model_file, 'w') as f:
+                f.write("bpetokenizer v1.0.0\n")
+                f.write(f"{self.pattern}\n")
+                f.write(f"{len(self.special_tokens)}\n")
+                if self.special_tokens:
+                    for special, idx in self.special_tokens.items():
+                        f.write(f"{special} {idx}\n")
 
-            for idx1, idx2 in self.merges: # this will give the tokens of pair which are merged
-                f.write(f"{idx1} {idx2}\n")
+                for idx1, idx2 in self.merges: # this will give the tokens of pair which are merged
+                    f.write(f"{idx1} {idx2}\n")
 
-            vocab_file = file_name + ".vocab"
-            inverted_merges = {idx: pair for pair, idx in self.merges.items()}
-            with open(vocab_file, "w", encoding="utf-8") as f:
-                for idx, token in self.vocab.items():
-                    s = render_token(token)
-                    # find the children of this token, if any
-                    if idx in inverted_merges:
-                        # if this token has children, render it nicely as a merge
-                        idx0, idx1 = inverted_merges[idx]
-                        s0 = render_token(self.vocab[idx0])
-                        s1 = render_token(self.vocab[idx1])
-                        f.write(f"[{s0}][{s1}] -> [{s}] {idx}\n")
-                    else:
-                        # otherwise this is leaf token, just print it
-                        # (this should just be the first 256 tokens, the bytes)
-                        f.write(f"[{s}] {idx}\n")
+                vocab_file = file_name + ".vocab"
+                inverted_merges = {idx: pair for pair, idx in self.merges.items()}
+                with open(vocab_file, "w", encoding="utf-8") as f:
+                    for idx, token in self.vocab.items():
+                        s = render_token(token)
+                        # find the children of this token, if any
+                        if idx in inverted_merges:
+                            # if this token has children, render it nicely as a merge
+                            idx0, idx1 = inverted_merges[idx]
+                            s0 = render_token(self.vocab[idx0])
+                            s1 = render_token(self.vocab[idx1])
+                            f.write(f"[{s0}][{s1}] -> [{s}] {idx}\n")
+                        else:
+                            # otherwise this is leaf token, just print it
+                            # (this should just be the first 256 tokens, the bytes)
+                            f.write(f"[{s}] {idx}\n")
+        elif mode == "json":
+            import json
+            data = {
+                "version": __version__,
+                "pattern": str(self.pattern),
+                "special_tokens": self.special_tokens,
+                "merges": {str(k): v for k, v in self.merges.items()},
+                "vocab": {idx: render_token(token) for idx, token in self.vocab.items()}
+            }
+            with open(file_name + ".json", "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=4)
+        else:
+            raise ValueError("mode should be either 'file' or 'json'")
+        
             
-    def load(self, file_name):
-        assert file_name.endswith(".model")
-        merges = {}
-        special_tokens = {}
-        idx = 256
-        with open(file_name, 'r', encoding="utf-8") as f:
-            assert f.readline().strip() == "bpetokenizer v1.0.0"
-            self.pattern = f.readline().strip().split()
-            num_special = int(f.readline().strip()) # no of lines of special_tokens
-            for _ in range(num_special):
-                special, idx = f.readline().strip().split()
-                special_tokens[special] = int(idx)
-            for line in f:
-                idx1, idx2 = map(int, line.strip().split())
-                merges[(idx1, idx2)] = idx
-                idx += 1
+    def load(self, file_name, mode="file"):
+        """
+        Load the model and vocab files to the tokenizer.
+        mode: str, default="file" | "json" to load the model and vocab in json format.
+        """
+        if mode == "file":
+            assert file_name.endswith(".model")
+            merges = {}
+            special_tokens = {}
+            idx = 256
+            with open(file_name, 'r', encoding="utf-8") as f:
+                assert f.readline().strip() == "bpetokenizer v1.0.0"
+                self.pattern = f.readline().strip().split()
+                num_special = int(f.readline().strip()) # no of lines of special_tokens
+                for _ in range(num_special):
+                    special, idx = f.readline().strip().split()
+                    special_tokens[special] = int(idx)
+                for line in f:
+                    idx1, idx2 = map(int, line.strip().split())
+                    merges[(idx1, idx2)] = idx
+                    idx += 1
+                
+            self.merges = merges
+            self.special_tokens = special_tokens
+            self.vocab = self._build_vocab()
 
-        self.merges = merges
-        self.special_tokens = special_tokens
-        self.vocab = self._build_vocab()
+        elif mode == "json":
+            assert file_name.endswith(".json")
+
+            import json
+            with open(file_name, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                self.pattern = data[r"pattern"]
+                self.special_tokens = data["special_tokens"]
+                self.inverse_special_tokens = {v: k for k, v in self.special_tokens.items()}
+                merges = data["merges"]
+                self.merges = {tuple(map(int, k.strip('()').split(','))): v for k, v in merges.items()}
+                vocab = data["vocab"]
+                self.vocab = {int(k): v.encode("utf-8") for k, v in vocab.items()}
+
+        
 
     def encode(self, texts):
         """Method to encode the text to ids."""

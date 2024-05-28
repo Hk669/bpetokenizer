@@ -116,17 +116,21 @@ class BPETokenizer(Tokenizer):
             if chunk in special:
                 ids.append(special[chunk])
             else:
-                ids.extend(self.encode_ord(chunk))
+                chunkids = self._encode(chunk.encode("utf-8"))
+                ids.extend(chunkids)
         return ids
 
 
     def decode(self, ids) -> str:
         part_bytes = []
         for idx in ids:
-            if idx in self.vocab:
+            if idx in self.vocab: #str conversion because vocab keys are strings when loaded from json
                 part_bytes.append(self.vocab[idx])
             elif idx in self.inverse_special_tokens:
                 part_bytes.append(self.inverse_special_tokens[idx].encode("utf-8")) # special tokens are not encoded in vocab
+            elif idx in self.merges:
+                pair = self.merges[idx]
+                part_bytes.append(self.vocab[pair[0]] + self.vocab[pair[1]])
             else:
                 raise ValueError(f"invalid token id: {idx}")
         text_bytes = b"".join(part_bytes)
