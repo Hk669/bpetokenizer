@@ -1,6 +1,6 @@
 # bpetokenizer
 
-A Byte Pair Encoding (BPE) tokenizer, which algorithmically follows along the GPT tokenizer. The tokenizer is capable of handling special tokens and uses a customizable regex pattern for tokenization(includes the gpt4 regex pattern).
+A Byte Pair Encoding (BPE) tokenizer, which algorithmically follows along the GPT tokenizer. The tokenizer is capable of handling special tokens and uses a customizable regex pattern for tokenization(includes the gpt4 regex pattern). supports `save` and `load` tokenizers in the `json` and `file` format.
 
 
 ### Overview
@@ -76,11 +76,42 @@ print(ids)
 decode_text = tokenizer.decode(ids)
 print(decode_text)
 
-tokenizer.save("sample_bpetokenizer")
+tokenizer.save("sample_bpetokenizer", mode="json") # mode: default is file
 ```
 
 refer [sample_bpetokenizer](sample/bpetokenizer) to have an understanding of the `vocab` and the `model` file of the tokenizer trained on the above texts.
 
+
+#### To Load the Tokenizer
+
+```py
+from bpetokenizer import BPETokenizer
+
+tokenizer = BPETokenizer()
+
+tokenizer.load("sample_bpetokenizer.json", mode="json")
+
+encode_text = """
+<|startoftext|>Hello, World! This is a sample text with the special tokens [SPECIAL1] and [SPECIAL2] to test the tokenizer.
+Hello, Universe! Another example sentence containing [SPECIAL1] and [SPECIAL2], used to ensure tokenizer's robustness.
+Greetings, Earth! Here we have [SPECIAL1] appearing once again, followed by [SPECIAL2] in the same sentence.<|endoftext|>"""
+
+print("vocab: ", tokenizer.vocab)
+print('---')
+print("merges: ", tokenizer.merges)
+print('---')
+print("special tokens: ", tokenizer.special_tokens)
+
+ids = tokenizer.encode(encode_text, special_tokens="all")
+print('---')
+print(ids)
+
+decode_text = tokenizer.decode(ids)
+print('---')
+print(decode_text)
+
+```
+refer to the [load_json_vocab](sample/load_json_vocab/) and run the `bpetokenizer_json` to get an overview of `vocab`, `merges`, `special_tokens`.
 
 ### Run Tests
 
