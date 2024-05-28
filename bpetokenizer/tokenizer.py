@@ -38,7 +38,7 @@ class BPETokenizer(Tokenizer):
 
         text_chunks = re.findall(self.pattern, texts) # handles the desired pattern of tokens with regex pattern
 
-        ids = [list(tokens.encode("utf-8")) for tokens in text_chunks]
+        ids = [list(tokens.encode("utf-8")) for tokens in text_chunks]      # List[List[int]]
         merges = {}
         vocab = {idx: bytes([idx]) for idx in range(256)} # vocab for first 255 bytes
 
@@ -51,7 +51,7 @@ class BPETokenizer(Tokenizer):
             pair = max(stats, key=stats.get) # returns the highest frequency pair
             idx = 256 + i
 
-            ids = [merge(chunk_ids, pair, idx) for chunk_ids in ids]
+            ids = [merge(chunk_ids, pair, idx) for chunk_ids in ids] # merge all the max occuring pair in the each chunk in ids
             merges[pair] = idx
             vocab[idx] = vocab[pair[0]] + vocab[pair[1]] # concat of bytes
 

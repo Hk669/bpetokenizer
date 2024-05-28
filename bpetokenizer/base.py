@@ -83,7 +83,7 @@ class Tokenizer:
         if mode == "file":
             model_file = file_name + ".model"
             with open(model_file, 'w') as f:
-                f.write("bpetokenizer v1.0.0\n")
+                f.write(f"{__version__}\n")
                 f.write(f"{self.pattern}\n")
                 f.write(f"{len(self.special_tokens)}\n")
                 if self.special_tokens:
@@ -135,7 +135,7 @@ class Tokenizer:
             special_tokens = {}
             idx = 256
             with open(file_name, 'r', encoding="utf-8") as f:
-                assert f.readline().strip() == "bpetokenizer v1.0.0"
+                assert f.readline().strip() == __version__
                 self.pattern = f.readline().strip().split()
                 num_special = int(f.readline().strip()) # no of lines of special_tokens
                 for _ in range(num_special):
@@ -156,6 +156,7 @@ class Tokenizer:
             import json
             with open(file_name, "r", encoding="utf-8") as f:
                 data = json.load(f)
+                assert data["version"] == __version__
                 self.pattern = data[r"pattern"]
                 self.special_tokens = data["special_tokens"]
                 self.inverse_special_tokens = {v: k for k, v in self.special_tokens.items()}
