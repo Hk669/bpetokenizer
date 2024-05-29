@@ -26,7 +26,8 @@ class BPETokenizer(Tokenizer):
 
     def __init__(self, pattern=None, special_tokens=None):
         super().__init__()
-        self.pattern = re.compile(GPT4_SPLIT_PATTERN) if pattern is None else pattern
+        self.pattern = GPT4_SPLIT_PATTERN if pattern is None else pattern
+        self.compiled_pattern = re.compile(self.pattern)
         self.special_tokens = {} if special_tokens is None else special_tokens
         self.inverse_special_tokens = {} if special_tokens is None else {v: k for k, v in special_tokens.items()}
 
@@ -36,7 +37,7 @@ class BPETokenizer(Tokenizer):
         assert vocab_size >= 256
         num_merges = vocab_size - 256
 
-        text_chunks = re.findall(self.pattern, texts) # handles the desired pattern of tokens with regex pattern
+        text_chunks = re.findall(self.compiled_pattern, texts) # handles the desired pattern of tokens with regex pattern
 
         ids = [list(tokens.encode("utf-8")) for tokens in text_chunks]      # List[List[int]]
         merges = {}
@@ -79,7 +80,7 @@ class BPETokenizer(Tokenizer):
     
 
     def encode_ord(self, text) -> list:
-        text_chunks = re.findall(self.pattern, text)
+        text_chunks = re.findall(self.compiled_pattern, text)
         ids = []
         for chunk in text_chunks:
             _bytes = chunk.encode("utf-8")
@@ -144,3 +145,16 @@ class BPETokenizer(Tokenizer):
         self.inverse_special_tokens = {v: k for k, v in special_tokens.items()}
     
 
+    def tokens(self, text, verbose=False) -> list:
+        text_chunks = re.findall(self.compiled_pattern, text)
+        
+        _tokens = []
+        for chunk in text_chunks:
+            _bytes = chunk.encode("utf-8")
+            chunk_ids = self._encode(_bytes)
+            chunk_tokens = [self.vocab[idx].decode("utf-8", errors="replace") if idx in self.vocab else f"[UNK{idx}]" for idx in chunk_ids]
+            _tokens.extend(chunk_tokens)
+        if verbose:
+            print(f"---\ntext chunks: {text_chunks}\n")
+            print(f"---\npattern: {self.pattern}\n")
+        return _tokens

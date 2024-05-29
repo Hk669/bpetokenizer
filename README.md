@@ -110,8 +110,13 @@ decode_text = tokenizer.decode(ids)
 print('---')
 print(decode_text)
 
+# you can also print the tokens and the text chunks split with the pattern.
+tokens = tokenizer.tokens(encode_text, verbose=True) # if verbose, prints the text chunks and also the pattern used to split.
+print('---')
+print("tokens: ", tokens)
+
 ```
-refer to the [load_json_vocab](sample/load_json_vocab/) and run the `bpetokenizer_json` to get an overview of `vocab`, `merges`, `special_tokens`.
+refer to the [load_json_vocab](sample/load_json_vocab/) and run the `bpetokenizer_json` to get an overview of `vocab`, `merges`, `special_tokens` and to view the tokens that are split by the tokenizer using pattern, look at [tokens](sample/load_json_vocab/tokens.py)
 
 ### Run Tests
 

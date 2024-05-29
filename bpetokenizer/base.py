@@ -3,6 +3,8 @@ This file will contains all the helper functions
 and Base class which has the methods to save/load model,
 also required to build the BPETokenizer.
 """
+
+import regex as re
 from .version import __version__
 
 def get_stats(tokens, counts=None) -> dict:
@@ -62,6 +64,7 @@ class Tokenizer:
     def __init__(self):
         self.merges = {}
         self.pattern = "" # the regex pattern
+        self.compiled_pattern = re.compile(self.pattern) if self.pattern else ""
         self.special_tokens = {}
         self.vocab = self._build_vocab() if self.merges else {}
 
@@ -157,7 +160,11 @@ class Tokenizer:
             with open(file_name, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 assert data["version"] == __version__
-                self.pattern = data[r"pattern"]
+                pattern = data["pattern"]
+                pattern_regex = re.compile(r'regex.Regex\("(.+)", flags=(regex\.\w+)\)')
+                match = pattern_regex.match(pattern)
+                if match:
+                    self.pattern = match.group(1)
                 self.special_tokens = data["special_tokens"]
                 self.inverse_special_tokens = {v: k for k, v in self.special_tokens.items()}
                 merges = data["merges"]
