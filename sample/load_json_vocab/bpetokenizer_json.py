@@ -17,7 +17,7 @@ print("special tokens: ", tokenizer.special_tokens)
 
 ids = tokenizer.encode(encode_text, special_tokens="all")
 print('---')
-print(ids)
+print('Ids: ', ids)
 
 decode_text = tokenizer.decode(ids)
 print('---')

@@ -1,6 +1,6 @@
 {
-    "version": "1.0.2",
-    "pattern": "regex.Regex(\"'(?i:[sdmt]|ll|ve|re)|[^\\\\r\\\\n\\\\p{L}\\\\p{N}]?+\\\\p{L}+|\\\\p{N}{1,3}| ?[^\\\\s\\\\p{L}\\\\p{N}]++[\\\\r\\\\n]*|\\\\s*[\\\\r\\\\n]|\\\\s+(?!\\\\S)|\\\\s+\", flags=regex.V0)",
+    "version": "1.0.31",
+    "pattern": "'(?i:[sdmt]|ll|ve|re)|[^\\r\\n\\p{L}\\p{N}]?+\\p{L}+|\\p{N}{1,3}| ?[^\\s\\p{L}\\p{N}]++[\\r\\n]*|\\s*[\\r\\n]|\\s+(?!\\S)|\\s+",
     "special_tokens": {
         "<|endoftext|>": 311,
         "<|startoftext|>": 312,
