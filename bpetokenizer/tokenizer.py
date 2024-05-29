@@ -55,11 +55,12 @@ class BPETokenizer(Tokenizer):
             stats = {}
             for chunk in ids:
                 get_stats(chunk, stats)
+            pair = max(stats, key=stats.get) # returns the highest frequency pair
+
             if stats[pair] < min_frequency:
                 break
-            pair = max(stats, key=stats.get) # returns the highest frequency pair
-            idx = 256 + i
 
+            idx = 256 + i
             ids = [merge(chunk_ids, pair, idx) for chunk_ids in ids] # merge all the max occuring pair in the each chunk in ids
             merges[pair] = idx
             vocab[idx] = vocab[pair[0]] + vocab[pair[1]] # concat of bytes

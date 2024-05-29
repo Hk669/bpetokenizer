@@ -61,8 +61,8 @@ def test_train_bpe_w_special_tokens():
     texts = "<|startoftext|> Hello, World! This is a sample text with the special tokens [SPECIAL1] and [SPECIAL2] to test the tokenizer.<|endoftext|>"
     tokenizer.train(texts, vocab_size=310, verbose=False)
 
-    assert len(tokenizer.vocab) == 310
-    assert len(tokenizer.merges) == 310 - 256
+    assert len(tokenizer.vocab) == 281
+    assert len(tokenizer.merges) == 25
     assert tokenizer.decode(tokenizer.encode(texts)) == texts
     assert tokenizer.inverse_special_tokens == {v: k for k,v in special_tokens.items()}
     assert tokenizer.special_tokens == special_tokens
