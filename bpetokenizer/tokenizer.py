@@ -32,8 +32,15 @@ class BPETokenizer(Tokenizer):
         self.inverse_special_tokens = {} if special_tokens is None else {v: k for k, v in special_tokens.items()}
 
 
-    def train(self, texts, vocab_size, verbose=False) -> None:
-        """Train the tokenizer on the given texts and vocab size. The vocab size should be greater than 256."""
+    def train(self, texts, vocab_size, verbose=False, min_frequency=2) -> None:
+        """
+        Train the tokenizer on the given texts and vocab size. The vocab size should be greater than 256.
+        params:
+            texts: str (the texts required for the tokenizer to train the vocabulary.)
+            vocab_size: int (the size of the vocab, gpt4 vocab size is around 100k)
+            verbose: bool (to get extra visibilty and the overview of internal processes)
+            min_frequency: int (the minimum frequency of the pair to be merged and added into the vocab as a new token)
+        """
         assert vocab_size >= 256
         num_merges = vocab_size - 256
 
@@ -48,7 +55,8 @@ class BPETokenizer(Tokenizer):
             stats = {}
             for chunk in ids:
                 get_stats(chunk, stats)
-
+            if stats[pair] < min_frequency:
+                break
             pair = max(stats, key=stats.get) # returns the highest frequency pair
             idx = 256 + i
 

@@ -78,10 +78,10 @@ class Tokenizer:
                 vocab[idx] = special.encode("utf-8")
         return vocab
 
-    def save(self, file_name, mode="file"):
+    def save(self, file_name, mode="json"):
         """
         Writes metadata and vocabulary information to the model and vocab files.
-        mode: str, default="file" | "json" to save the model and vocab in json format.
+        mode: str, default="json" | "file" to save the model and vocab in file format.
         """
         if mode == "file":
             model_file = file_name + ".model"
@@ -127,10 +127,10 @@ class Tokenizer:
             raise ValueError("mode should be either 'file' or 'json'")
         
             
-    def load(self, file_name, mode="file"):
+    def load(self, file_name, mode="json"):
         """
         Load the model and vocab files to the tokenizer.
-        mode: str, default="file" | "json" to load the model and vocab in json format.
+        mode: str, default="json" | "file" to load the model and vocab in file format.
         """
         if mode == "file":
             assert file_name.endswith(".model")
@@ -196,8 +196,15 @@ class Tokenizer:
         text = bytes_str.decode("utf-8", errors="replace")
         return text
 
-    def train(self, texts, vocab_size, verbose=False):
-        """Method for training the tokenizer."""
+    def train(self, texts, vocab_size, verbose=False, min_frequency=2):
+        """
+        Train the tokenizer on the given texts and vocab size. The vocab size should be greater than 256.
+        params:
+            texts: str (the texts required for the tokenizer to train the vocabulary.)
+            vocab_size: int (the size of the vocab, gpt4 vocab size is around 100k)
+            verbose: bool (to get extra visibilty and the overview of internal processes)
+            min_frequency: int (the minimum frequency of the pair to be merged and added into the vocab as a new token)
+        """
         assert vocab_size >= 256
         num_merges = vocab_size - 256
 
@@ -212,6 +219,8 @@ class Tokenizer:
             pair = max(stats, key=stats.get) # returns the highest frequency pair
             idx = 256 + i
 
+            if stats[pair] < min_frequency:
+                break
             ids = merge(ids, pair, idx)
             merges[pair] = idx
             vocab[idx] = vocab[pair[0]] + vocab[pair[1]] # concat of bytes
