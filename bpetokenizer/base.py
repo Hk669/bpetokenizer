@@ -61,11 +61,11 @@ def render_token(t: bytes) -> str:
 class Tokenizer:
     """A Base class for the tokenizer, used for training and encoding/decoding the text without special tokens."""
 
-    def __init__(self):
+    def __init__(self, special_tokens=None):
         self.merges = {}
         self.pattern = "" # the regex pattern
         self.compiled_pattern = re.compile(self.pattern) if self.pattern else ""
-        self.special_tokens = {}
+        self.special_tokens = special_tokens if special_tokens else {}
         self.vocab = self._build_vocab() if self.merges else {}
 
     def _build_vocab(self) -> dict:
@@ -176,6 +176,7 @@ class Tokenizer:
 
     def encode(self, texts):
         """Method to encode the text to ids."""
+        assert texts
         text_bytes = texts.encode("utf-8") # raw bytes string
         ids = list(map(int, text_bytes))
         while len(ids) >= 2:
@@ -206,6 +207,7 @@ class Tokenizer:
             min_frequency: int (the minimum frequency of the pair to be merged and added into the vocab as a new token)
         """
         assert vocab_size >= 256
+        assert texts
         num_merges = vocab_size - 256
 
         tokens = texts.encode("utf-8")
