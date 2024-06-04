@@ -154,3 +154,7 @@ logs
 
 output/
 *.pkl
+
+# Ignore training files
+wk100k_base.py
+datasets/
