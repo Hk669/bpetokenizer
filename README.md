@@ -22,13 +22,16 @@ Every LLM(LLama, Gemini, Mistral..) use their own Tokenizers trained on their ow
 - Compatible with Python 3.9 and above
 
 
-#### This repository has 2 different Tokenizers:
+#### This repository has 3 different Tokenizers:
 - `BPETokenizer`
 - `Tokenizer`
+- `PreTrained`
 
 1. [Tokenizer](bpetokenizer/base.py): This class contains `train`, `encode`, `decode` and functionalities to `save` and `load`. Also contains few helper functions `get_stats`, `merge`, `replace_control_characters`..  to perform the BPE algorithm for the tokenizer.
 
 2. [BPETokenizer](bpetokenizer/tokenizer.py): This class emphasizes the real power of the tokenizer(used in gpt4 tokenizer..[tiktoken](https://github.com/openai/tiktoken)), uses the `GPT4_SPLIT_PATTERN` to split the text as mentioned in the gpt4 tokenizer. also handles the `special_tokens` (refer [sample_bpetokenizer](sample/bpetokenizer/sample_bpetokenizer.py)). which inherits the `save` and `load` functionlities to save and load the tokenizer respectively.
+
+3. [PreTrained Tokenizer](pretrained/wi17k_base.json): PreTrained Tokenizer wi17k_base, has a 17316 vocabulary. trained with the wikitext dataset (len: 1000000). with 6 special_tokens.
 
 
 ### Usage
