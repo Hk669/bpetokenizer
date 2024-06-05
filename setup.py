@@ -25,6 +25,9 @@ setup(
     author_email="hrushi669@gmail.com",
     license="MIT",
     packages=find_packages(include=["bpetokenizer"]),
+    package_data={
+        'bpetokenizer': ['pretrained/wi17k_base/wi17k_base.json'],
+    },
     classifiers=[
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3",

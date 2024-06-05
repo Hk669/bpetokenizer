@@ -16,6 +16,7 @@ https://youtu.be/zduSFxRajkE?si=Qv-yX2NUY69aIjCQ (Andrej Karpathy's tutorial on 
 
 from .base import Tokenizer, get_stats, merge
 import regex as re
+import os
 
 # from the openai/tiktoken (used in gpt4 tokenizer)
 GPT4_SPLIT_PATTERN = r"""'(?i:[sdmt]|ll|ve|re)|[^\r\n\p{L}\p{N}]?+\p{L}+|\p{N}{1,3}| ?[^\s\p{L}\p{N}]++[\r\n]*|\s*[\r\n]|\s+(?!\S)|\s+"""     # raw string
@@ -32,7 +33,22 @@ class BPETokenizer(Tokenizer):
         self.inverse_special_tokens = {} if special_tokens is None else {v: k for k, v in special_tokens.items()}
 
 
-    def train(self, texts, vocab_size, verbose=False, min_frequency=2) -> None:
+    @classmethod
+    def from_pretrained(cls, 
+                        tokenizer_name: str, 
+                        verbose=False):
+        tokenizer = cls()
+        pretrained_dir = 'bpetokenizer/pretrained'
+        tokenizer_file = os.path.join(pretrained_dir, tokenizer_name, f'{tokenizer_name}.json')
+        if verbose:
+            print(f"loading tokenizer from: {tokenizer_file}")
+        if not os.path.exists(tokenizer_file):
+            raise FileNotFoundError(f"tokenizer file not found: {tokenizer_file}. Please check the tokenizer name")
+        tokenizer.load(tokenizer_file, mode="json")
+        return tokenizer
+    
+
+    def train(self, texts, vocab_size, verbose=False, min_frequency=1) -> None:
         """
         Train the tokenizer on the given texts and vocab size. The vocab size should be greater than 256.
         params:
@@ -92,9 +108,12 @@ class BPETokenizer(Tokenizer):
         text_chunks = re.findall(self.compiled_pattern, text)
         ids = []
         for chunk in text_chunks:
-            _bytes = chunk.encode("utf-8")
-            chunk_ids = self._encode(_bytes)
-            ids.extend(chunk_ids)
+            if chunk in self.vocab:
+                ids.append(self.vocab[chunk])
+            else:
+                _bytes = chunk.encode("utf-8")
+                chunk_ids = self._encode(_bytes)
+                ids.extend(chunk_ids)
         return ids
 
 
@@ -164,6 +183,8 @@ class BPETokenizer(Tokenizer):
             chunk_tokens = [self.vocab[idx].decode("utf-8", errors="replace") if idx in self.vocab else f"[UNK{idx}]" for idx in chunk_ids]
             _tokens.extend(chunk_tokens)
         if verbose:
+            print(f"---\nlength: {len(text_chunks)}\n")
             print(f"---\ntext chunks: {text_chunks}\n")
             print(f"---\npattern: {self.pattern}\n")
         return _tokens
+    

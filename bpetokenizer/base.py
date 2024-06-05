@@ -171,6 +171,7 @@ class Tokenizer:
                 self.merges = {tuple(map(int, k.strip('()').split(','))): v for k, v in merges.items()}
                 vocab = data["vocab"]
                 self.vocab = {int(k): v.encode("utf-8") for k, v in vocab.items()}
+                self.inverse_vocab = {v.decode("utf-8"): k for k, v in self.vocab.items()}
 
         
 
@@ -197,7 +198,7 @@ class Tokenizer:
         text = bytes_str.decode("utf-8", errors="replace")
         return text
 
-    def train(self, texts, vocab_size, verbose=False, min_frequency=2):
+    def train(self, texts, vocab_size, verbose=False, min_frequency=1):
         """
         Train the tokenizer on the given texts and vocab size. The vocab size should be greater than 256.
         params:
