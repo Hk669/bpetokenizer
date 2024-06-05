@@ -138,7 +138,6 @@ class Tokenizer:
             special_tokens = {}
             idx = 256
             with open(file_name, 'r', encoding="utf-8") as f:
-                assert f.readline().strip() == __version__
                 self.pattern = f.readline().strip().split()
                 num_special = int(f.readline().strip()) # no of lines of special_tokens
                 for _ in range(num_special):
@@ -159,7 +158,6 @@ class Tokenizer:
             import json
             with open(file_name, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                assert data["version"] == __version__
                 pattern = data["pattern"]
                 pattern_regex = re.compile(r'regex.Regex\("(.+)", flags=(regex\.\w+)\)')
                 match = pattern_regex.match(pattern)
