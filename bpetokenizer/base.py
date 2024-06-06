@@ -67,6 +67,7 @@ class Tokenizer:
         self.compiled_pattern = re.compile(self.pattern) if self.pattern else ""
         self.special_tokens = special_tokens if special_tokens else {}
         self.vocab = self._build_vocab() if self.merges else {}
+        self.inverse_vocab = {str(v.decode("utf-8")): k for k, v in self.vocab.items()} if self.vocab else {}
 
     def _build_vocab(self) -> dict:
         """Build the vocab from the merges and special tokens. This will be used to encode/decode the tokens."""
@@ -169,7 +170,7 @@ class Tokenizer:
                 self.merges = {tuple(map(int, k.strip('()').split(','))): v for k, v in merges.items()}
                 vocab = data["vocab"]
                 self.vocab = {int(k): v.encode("utf-8") for k, v in vocab.items()}
-                self.inverse_vocab = {v.decode("utf-8"): k for k, v in self.vocab.items()}
+                self.inverse_vocab = {str(v.decode("utf-8")): k for k, v in self.vocab.items()} if self.vocab else {}
 
         
 

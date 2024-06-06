@@ -46,6 +46,9 @@ class BPETokenizer(Tokenizer):
         if not os.path.exists(tokenizer_file):
             raise FileNotFoundError(f"tokenizer file not found: {tokenizer_file}. Please check the tokenizer name")
         tokenizer.load(tokenizer_file, mode="json")
+        if verbose:
+            print('---\nSpecial tokens: ', tokenizer.special_tokens)
+            print('---\nLength of Vocab: ', len(tokenizer.vocab))
         return tokenizer
     
 
@@ -60,7 +63,8 @@ class BPETokenizer(Tokenizer):
         """
         assert vocab_size >= 256
         num_merges = vocab_size - 256
-
+        assert num_merges > 0
+        
         text_chunks = re.findall(self.compiled_pattern, texts) # handles the desired pattern of tokens with regex pattern
 
         ids = [list(tokens.encode("utf-8")) for tokens in text_chunks]      # List[List[int]]
@@ -119,6 +123,8 @@ class BPETokenizer(Tokenizer):
         for chunk in text_chunks:
             if chunk in self.vocab:
                 ids.append(self.vocab[chunk])
+            elif chunk in self.special_tokens:
+                ids.append(self.special_tokens[chunk])
             else:
                 _bytes = chunk.encode("utf-8")
                 chunk_ids = self._encode(_bytes)
@@ -143,19 +149,18 @@ class BPETokenizer(Tokenizer):
             assert all(token not in text for token in self.special_tokens)
         else:
             raise ValueError(f"invalid special tokens argument: {special_tokens}")
+
         
-        if not special:
-            return self.encode_ord(text)
-        
-        special_pattern = "(" + "|".join(re.escape(k) for k in special) + ")"
-        text_chunks = re.split(special_pattern, text)
+        text_chunks = re.findall(self.compiled_pattern, text)
         ids = []
         for chunk in text_chunks:
-            if chunk in special:
-                ids.append(special[chunk])
+            if chunk in self.inverse_vocab:
+                ids.append(self.inverse_vocab[chunk])
+            elif chunk in self.special_tokens:
+                ids.append(self.special_tokens[chunk])
             else:
-                chunkids = self._encode(chunk.encode("utf-8"))
-                ids.extend(chunkids)
+                chunk_ids = self._encode(chunk.encode("utf-8"))
+                ids.extend(chunk_ids)
         return ids
 
 
@@ -184,16 +189,11 @@ class BPETokenizer(Tokenizer):
 
     def tokens(self, text, verbose=False) -> list:
         text_chunks = re.findall(self.compiled_pattern, text)
-        
-        _tokens = []
-        for chunk in text_chunks:
-            _bytes = chunk.encode("utf-8")
-            chunk_ids = self._encode(_bytes)
-            chunk_tokens = [self.vocab[idx].decode("utf-8", errors="replace") if idx in self.vocab else f"[UNK{idx}]" for idx in chunk_ids]
-            _tokens.extend(chunk_tokens)
+        ids = self.encode(text, special_tokens="all")
         if verbose:
-            print(f"---\nlength: {len(text_chunks)}\n")
-            print(f"---\ntext chunks: {text_chunks}\n")
-            print(f"---\npattern: {self.pattern}\n")
-        return _tokens
+            print(f"---\nText chunks: {text_chunks}\n")
+            print(f"---\nLength Text chunks: {len(text_chunks)}\n")
+            print(f"---\nIDs: {ids}")
+            print(f"---\nLength: {len(ids)}\n")
+        return ids
     
