@@ -17,6 +17,7 @@ https://youtu.be/zduSFxRajkE?si=Qv-yX2NUY69aIjCQ (Andrej Karpathy's tutorial on 
 from .base import Tokenizer, get_stats, merge
 import regex as re
 import os
+import time
 
 # from the openai/tiktoken (used in gpt4 tokenizer)
 GPT4_SPLIT_PATTERN = r"""'(?i:[sdmt]|ll|ve|re)|[^\r\n\p{L}\p{N}]?+\p{L}+|\p{N}{1,3}| ?[^\s\p{L}\p{N}]++[\r\n]*|\s*[\r\n]|\s+(?!\S)|\s+"""     # raw string
@@ -31,7 +32,7 @@ class BPETokenizer(Tokenizer):
         self.compiled_pattern = re.compile(self.pattern)
         self.special_tokens = {} if special_tokens is None else special_tokens
         self.inverse_special_tokens = {} if special_tokens is None else {v: k for k, v in special_tokens.items()}
-
+        self.vocab_size = len(self.vocab) if self.vocab else 0
 
     @classmethod
     def from_pretrained(cls, 
@@ -63,9 +64,9 @@ class BPETokenizer(Tokenizer):
         text_chunks = re.findall(self.compiled_pattern, texts) # handles the desired pattern of tokens with regex pattern
 
         ids = [list(tokens.encode("utf-8")) for tokens in text_chunks]      # List[List[int]]
-        merges = {}
-        vocab = {idx: bytes([idx]) for idx in range(256)} # vocab for first 255 bytes
+        self.vocab = {idx: bytes([idx]) for idx in range(256)} # vocab for first 255 bytes
 
+        start_time = time.time()
         # bpe algorithm
         for i in range(num_merges):
             stats = {}
@@ -78,14 +79,22 @@ class BPETokenizer(Tokenizer):
 
             idx = 256 + i
             ids = [merge(chunk_ids, pair, idx) for chunk_ids in ids] # merge all the max occuring pair in the each chunk in ids
-            merges[pair] = idx
-            vocab[idx] = vocab[pair[0]] + vocab[pair[1]] # concat of bytes
+            self.merges[pair] = idx
+            self.vocab[idx] = self.vocab[pair[0]] + self.vocab[pair[1]] # concat of bytes
 
             if verbose:
-                print(f"merging {i+1}/{num_merges}: {pair} -> {idx} ({vocab[idx]}) had {stats[pair]} frequency")
+                print(f"merging {i+1}/{num_merges}: {pair} -> {idx} ({self.vocab[idx]}) had {stats[pair]} frequency")
 
-        self.merges = merges
-        self.vocab = vocab
+        end_time = time.time()
+        total_time = end_time - start_time
+
+        # Calculate throughput
+        total_chunks = len(text_chunks)
+        throughput_chunks = total_chunks / total_time
+
+        if verbose:
+            print(f"Total time taken: {total_time:.2f} seconds")
+            print(f"Throughput: {throughput_chunks:.2f} chunks/second")
 
 
     def _encode(self, _bytes) -> list:
