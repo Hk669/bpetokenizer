@@ -90,7 +90,7 @@ class BPETokenizer(Tokenizer):
 
         # Calculate throughput
         total_chunks = len(text_chunks)
-        throughput_chunks = total_chunks / total_time
+        throughput_chunks = (total_chunks / total_time) if total_time != 0 else 0
 
         if verbose:
             print(f"Total time taken: {total_time:.2f} seconds")
