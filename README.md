@@ -1,6 +1,6 @@
 # bpetokenizer
 
-A Byte Pair Encoding (BPE) tokenizer, which algorithmically follows along the GPT tokenizer. The tokenizer is capable of handling special tokens and uses a customizable regex pattern for tokenization(includes the gpt4 regex pattern). supports `save` and `load` tokenizers in the `json` and `file` format.
+A Byte Pair Encoding (BPE) tokenizer, which algorithmically follows along the GPT tokenizer(tiktoken), allows you to train your own tokenizer. The tokenizer is capable of handling special tokens and uses a customizable regex pattern for tokenization(includes the gpt4 regex pattern). supports `save` and `load` tokenizers in the `json` and `file` format. The `bpetokenizer` also supports [pretrained](bpetokenizer/pretrained/) tokenizers.
 
 
 ### Overview
@@ -31,7 +31,7 @@ Every LLM(LLama, Gemini, Mistral..) use their own Tokenizers trained on their ow
 
 2. [BPETokenizer](bpetokenizer/tokenizer.py): This class emphasizes the real power of the tokenizer(used in gpt4 tokenizer..[tiktoken](https://github.com/openai/tiktoken)), uses the `GPT4_SPLIT_PATTERN` to split the text as mentioned in the gpt4 tokenizer. also handles the `special_tokens` (refer [sample_bpetokenizer](sample/bpetokenizer/sample_bpetokenizer.py)). which inherits the `save` and `load` functionlities to save and load the tokenizer respectively.
 
-3. [PreTrained Tokenizer](pretrained/wi17k_base.json): PreTrained Tokenizer wi17k_base, has a 17316 vocabulary. trained with the wikitext dataset (len: 1000000). with 6 special_tokens.
+3. [PreTrained Tokenizer](bpetokenizer/pretrained/wi17k_base): PreTrained Tokenizer wi17k_base, has a 17316 vocabulary. trained with the wikitext dataset (len: 1000000). with 6 special_tokens.
 
 
 ### Usage
@@ -121,6 +121,28 @@ print("tokens: ", tokens)
 ```
 refer to the [load_json_vocab](sample/load_json_vocab/) and run the `bpetokenizer_json` to get an overview of `vocab`, `merges`, `special_tokens` and to view the tokens that are split by the tokenizer using pattern, look at [tokens](sample/load_json_vocab/tokens.py)
 
+
+#### To load the pretrained tokenizers
+
+```py
+from bpetokenizer import BPETokenzier
+
+tokenizer = BPETokenizer.from_pretrained("wi17k_base", verbose=True)
+
+texts = """
+def get_stats(tokens, counts=None) -> dict:
+    "Get statistics of the tokens. Includes the frequency of each consecutive pair of tokens"
+    counts = if counts is None else counts
+    for pair in zip(tokens, tokens[1:]):
+        counts[pair] = counts.get(pair, 0) + 1
+    return counts
+"""
+tokenizer.tokens(texts, verbose=True)
+
+```
+for now, we only have a single 17k vocab tokenizer `wi17_base` at [pretrained](/bpetokenizer/pretrained/)
+
+
 ### Run Tests
 
 the tests folder `tests/` include the tests of the tokenizer, uses pytest.
@@ -138,7 +160,7 @@ Contributions to the BPE Tokenizer are most welcomed! If you would like to contr
 
 - Star and Fork the repository.
 - Create a new branch (git checkout -b feature/your-feature).
-- Commit your changes (git commit -am 'Add some feature').
+- Commit your changes (git commit -m 'Add some feature').
 - Push to the branch (git push origin feature/your-feature).
 - Create a new Pull Request.
 

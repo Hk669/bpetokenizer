@@ -17,7 +17,7 @@ with open("README.md", "r", encoding="utf-8") as f:
 setup(
     name="bpetokenizer",
     version=__version__,
-    description="Byte Pair Encoding Tokenizer with special tokens and regex pattern",
+    description="A Byte Pair Encoding (BPE) tokenizer, which algorithmically follows along the GPT tokenizer(tiktoken), allows you to train your own tokenizer. The tokenizer is capable of handling special tokens and uses a customizable regex pattern for tokenization(includes the gpt4 regex pattern). supports `save` and `load` tokenizers in the `json` and `file` format. The `bpetokenizer` also supports [pretrained](bpetokenizer/pretrained/) tokenizers.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/Hk669/bpetokenizer",
