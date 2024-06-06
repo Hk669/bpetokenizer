@@ -169,7 +169,7 @@ class Tokenizer:
                 self.merges = {tuple(map(int, k.strip('()').split(','))): v for k, v in merges.items()}
                 vocab = data["vocab"]
                 self.vocab = {int(k): v.encode("utf-8") for k, v in vocab.items()}
-                self.inverse_vocab = {v.decode("utf-8"): k for k, v in self.vocab.items()}
+                self.inverse_vocab = {str(v.decode("utf-8")): k for k, v in self.vocab.items()}
 
         
 
