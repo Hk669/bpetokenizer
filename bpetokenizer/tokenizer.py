@@ -129,8 +129,6 @@ class BPETokenizer(Tokenizer):
         for chunk in text_chunks:
             if chunk in self.vocab:
                 ids.append(self.vocab[chunk])
-            elif chunk in self.special_tokens:
-                ids.append(self.special_tokens[chunk])
             else:
                 _bytes = chunk.encode("utf-8")
                 chunk_ids = self._encode(_bytes)
