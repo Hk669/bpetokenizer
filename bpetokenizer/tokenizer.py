@@ -14,7 +14,7 @@ https://youtu.be/zduSFxRajkE?si=Qv-yX2NUY69aIjCQ (Andrej Karpathy's tutorial on 
 
 """
 
-from .base import Tokenizer, get_stats, merge
+from .base import Tokenizer, get_stats, merge, render_token, replace_control_characters
 import regex as re
 import os
 import time
@@ -186,7 +186,7 @@ class BPETokenizer(Tokenizer):
         text_bytes = b"".join(part_bytes)
         if verbose:
             print("---\nText bytes: ", text_bytes)
-        text = text_bytes.decode("utf-8", errors="replace")
+        text = render_token(text_bytes)
         return text
 
 
