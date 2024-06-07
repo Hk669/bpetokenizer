@@ -82,38 +82,9 @@ class Tokenizer:
     def save(self, file_name, mode="json"):
         """
         Writes metadata and vocabulary information to the model and vocab files.
-        mode: str, default="json" | "file" to save the model and vocab in file format.
+        mode: str, default="json" to save the model and vocab in json format.
         """
-        if mode == "file":
-            model_file = file_name + ".model"
-            with open(model_file, 'w') as f:
-                f.write(f"{__version__}\n")
-                f.write(f"{self.pattern}\n")
-                f.write(f"{len(self.special_tokens)}\n")
-                if self.special_tokens:
-                    for special, idx in self.special_tokens.items():
-                        f.write(f"{special} {idx}\n")
-
-                for idx1, idx2 in self.merges: # this will give the tokens of pair which are merged
-                    f.write(f"{idx1} {idx2}\n")
-
-                vocab_file = file_name + ".vocab"
-                inverted_merges = {idx: pair for pair, idx in self.merges.items()}
-                with open(vocab_file, "w", encoding="utf-8") as f:
-                    for idx, token in self.vocab.items():
-                        s = render_token(token)
-                        # find the children of this token, if any
-                        if idx in inverted_merges:
-                            # if this token has children, render it nicely as a merge
-                            idx0, idx1 = inverted_merges[idx]
-                            s0 = render_token(self.vocab[idx0])
-                            s1 = render_token(self.vocab[idx1])
-                            f.write(f"[{s0}][{s1}] -> [{s}] {idx}\n")
-                        else:
-                            # otherwise this is leaf token, just print it
-                            # (this should just be the first 256 tokens, the bytes)
-                            f.write(f"[{s}] {idx}\n")
-        elif mode == "json":
+        if mode == "json":
             import json
             data = {
                 "version": __version__,
@@ -125,35 +96,15 @@ class Tokenizer:
             with open(file_name + ".json", "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=4)
         else:
-            raise ValueError("mode should be either 'file' or 'json'")
+            raise ValueError("mode should be 'json' only.")
         
             
     def load(self, file_name, mode="json"):
         """
         Load the model and vocab files to the tokenizer.
-        mode: str, default="json" | "file" to load the model and vocab in file format.
+        mode: str, default="json" to load the model and vocab in json format.
         """
-        if mode == "file":
-            assert file_name.endswith(".model")
-            merges = {}
-            special_tokens = {}
-            idx = 256
-            with open(file_name, 'r', encoding="utf-8") as f:
-                self.pattern = f.readline().strip().split()
-                num_special = int(f.readline().strip()) # no of lines of special_tokens
-                for _ in range(num_special):
-                    special, idx = f.readline().strip().split()
-                    special_tokens[special] = int(idx)
-                for line in f:
-                    idx1, idx2 = map(int, line.strip().split())
-                    merges[(idx1, idx2)] = idx
-                    idx += 1
-                
-            self.merges = merges
-            self.special_tokens = special_tokens
-            self.vocab = self._build_vocab()
-
-        elif mode == "json":
+        if mode == "json":
             assert file_name.endswith(".json")
 
             import json
@@ -171,7 +122,8 @@ class Tokenizer:
                 vocab = data["vocab"]
                 self.vocab = {int(k): v.encode("utf-8") for k, v in vocab.items()}
                 self.inverse_vocab = {str(v.decode("utf-8")): k for k, v in self.vocab.items()} if self.vocab else {}
-
+        else:
+            raise ValueError("mode should be 'json' only.")
         
 
     def encode(self, texts):
